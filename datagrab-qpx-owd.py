@@ -49,6 +49,7 @@ def flightperdate(fdate):
     except Exception:
         print "online data unavailable, or daily limit reached. Trying to find chache file."
         # This is to use the cache file when live data is not available, only 5 flights TODO cache  a 20 flight journey
+        USING_CACHE= True
         with open('flightfile.txt') as json_data:
             flightdata = json.load(json_data)
             json_data.close()
@@ -68,14 +69,11 @@ def flightperdate(fdate):
     # for f in listOfFlights:
     #     print f.name
     #     print f.cost
-
+    #flight caching file printing Code
+    # flightout = open('flightfile.txt', 'w')
+    # json.dump(flightdata, flightout)
+    # flightout.close()
     return listOfFlights
-
-
-#flight caching file printing Code
-# flightout = open('flightfile.txt', 'w')
-# json.dump(flightdata, flightout )
-# flightout.close()
 
 def getCityName(tocity):
     url_parameters = {'format':'json'}
@@ -92,7 +90,9 @@ def getCityName(tocity):
     except Exception:
         print "That didn't work"
         airport_data = {}
+
         airport_data['city'] = "Chicago" # TODO have a chache file with city names and airport codes
+
 
     return airport_data['city']
 

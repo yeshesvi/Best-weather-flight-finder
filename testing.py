@@ -1,38 +1,52 @@
 import json
 import requests
 from datetime import date
+from datetime import timedelta
 from pprint import pprint
 
-fdate = date.today()
-api_key = "AIzaSyB88DDPzNdz5bbUDSdSpLXE2nTgd0-bAj4"
-url = "https://www.googleapis.com/qpxExpress/v1/trips/search?key=" + api_key
-headers = {'content-type': 'application/json'}
+USING_CACHE = True
 
-params = {
-  "request": {
-    "slice": [
-      {
-        "origin": "DTW",
-        "destination": "ORD",
-        "date": fdate.isoformat()
+def flightperdate(fdate):
+    api_key = "AIzaSyB88DDPzNdz5bbUDSdSpLXE2nTgd0-bAj4"
+    url = "https://www.googleapis.com/qpxExpress/v1/trips/search?key=" + api_key
+    headers = {'content-type': 'application/json'}
+
+    params = {
+      "request": {
+        "slice": [
+          {
+            "origin": "DTW",
+            "destination": "ORD",
+            "date": fdate.isoformat()
+          }
+        ],
+        "passengers": {
+          "adultCount": 1
+        },
+        "solutions": 5,
+        "refundable": False
       }
-    ],
-    "passengers": {
-      "adultCount": 1
-    },
-    "solutions": 3,
-    "refundable": False
-  }
-}
-try:
-    response = requests.post(url, data=json.dumps(params), headers=headers)
-    flightdata = response.json()
-    'error' not in flightdata.keys
+    }
+    try:
+        response = requests.post(url, data=json.dumps(params), headers=headers)
+        print response.status_code # error code is 403.
+        flightdata = response.json()
+        return flightdata
+    except Exception:
+        print "online data unavailable, Please try cached data."
 
 
-except Exception:
-    print "online data unavailable, or daily limit reached. Trying to find chache file."
-    with open('flightfile.txt') as json_data:# This is to use the cache file instead of calling in data all the time.
-        flightdata = json.load(json_data)
+def getFlightDict():
+    today = date.today()
+    a=1
+    flightdict={}
+    while a<15:
+        fdate = today + timedelta(days=a)
+        flightdict[fdate.isoformat()] = flightperdate(fdate)
+        a=a+1
+    return flightdict
 
-pprint(flightdata)
+flightdict = getFlightDict()
+flightout = open('flightfile.txt', 'w')
+json.dump(flightdict, flightout)
+flightout.close()
